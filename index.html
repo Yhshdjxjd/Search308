@@ -1,0 +1,3256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
+    />
+    <title>NovaGo Search</title>
+    <meta
+      name="description"
+      content="Nova Search — Private, fast, and powerful web search by NovaGo Browser."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+   <meta name="google-site-verification" content="Zh1TC6SnuMUpRWhhCDsuHzeWs_LuGA8E5hWi4RgWmCM" />
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        doc,
+        query,
+        where,
+        orderBy,
+        getDocs,
+        getDoc,
+        addDoc,
+        setDoc,
+        deleteDoc,
+        limit,
+        serverTimestamp,
+        onSnapshot,
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBJb9fDE-EP-9tVcZncZH9FX2L0mMWyBFI",
+        authDomain: "gen-lang-client-0968734817.firebaseapp.com",
+        projectId: "gen-lang-client-0968734817",
+        storageBucket: "gen-lang-client-0968734817.firebasestorage.app",
+        messagingSenderId: "934950805110",
+        appId: "1:934950805110:web:708a50202a6f0560008957",
+      };
+
+      try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window._db = db;
+        window._fs = {
+          collection,
+          doc,
+          query,
+          where,
+          orderBy,
+          getDocs,
+          getDoc,
+          addDoc,
+          setDoc,
+          deleteDoc,
+          limit,
+          serverTimestamp,
+          onSnapshot,
+        };
+        window._firebaseReady = true;
+        document.dispatchEvent(new Event("firebase-ready"));
+        console.log("Firebase ready");
+      } catch (err) {
+        console.warn("Firebase init failed:", err.message);
+        window._firebaseReady = false;
+        document.dispatchEvent(new Event("firebase-ready"));
+      }
+    </script>
+
+    <style>
+      /* ============================================================
+           CSS CUSTOM PROPERTIES
+        ============================================================ */
+      :root {
+        --blue: #1a73e8;
+        --blue-dark: #1557b0;
+        --blue-light: #e8f0fe;
+        --text-primary: #202124;
+        --text-secondary: #5f6368;
+        --text-link: #1a0dab;
+        --bg: #f8f9fa;
+        --bg-white: #ffffff;
+        --border: #dfe1e5;
+        --border-light: #e8eaed;
+        --hover: #f1f3f4;
+        --tab-active: #1a73e8;
+        --radius: 24px;
+        --shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+        --shadow-lg: 0 4px 20px rgba(32, 33, 36, 0.18);
+        --green: #188038;
+        --red: #d93025;
+
+        /* Layout */
+        --topbar-h: 110px; /* approx topbar height on mobile */
+      }
+
+      /* ============================================================
+           RESET & BASE
+        ============================================================ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+
+      body {
+        font-family: "Roboto", Arial, sans-serif;
+        background: var(--bg-white);
+        color: var(--text-primary);
+        min-height: 100vh;
+        /* prevent horizontal overflow globally */
+        overflow-x: hidden;
+        max-width: 100vw;
+      }
+
+      /* ============================================================
+           PAGES
+        ============================================================ */
+      .page {
+        display: none;
+        min-height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        will-change: transform;
+        /* critical: contain width */
+        width: 100%;
+        overflow-x: hidden;
+      }
+      .page.active {
+        display: block;
+        position: relative;
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(40px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideInLeft {
+        from {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: -400px 0;
+        }
+        100% {
+          background-position: 400px 0;
+        }
+      }
+
+      .page-enter-right {
+        animation: slideInRight 0.22s ease-out forwards;
+      }
+      .page-enter-left {
+        animation: slideInLeft 0.18s ease-out forwards;
+      }
+
+      /* ============================================================
+           HOME PAGE
+        ============================================================ */
+      #home-page {
+        min-height: 100vh;
+        padding: 0 16px 80px;
+        background: #fff;
+      }
+      #home-page.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      .home-center {
+        width: 100%;
+        max-width: 584px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      /* Logo */
+      .home-logo {
+        width: 190px;
+        max-width: 60vw;
+        height: auto;
+        margin-bottom: 0px;
+        animation: fadeIn 0.5s ease;
+      }
+
+      /* Search Box — Home */
+      .search-box-wrap {
+        width: 100%;
+        position: relative;
+      }
+
+      .search-box {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0 16px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        box-shadow: none;
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s;
+        cursor: text;
+      }
+      .search-box:hover,
+      .search-box:focus-within {
+        box-shadow: var(--shadow);
+        border-color: transparent;
+      }
+      .search-box input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        color: var(--text-primary);
+        background: transparent;
+        font-family: inherit;
+      }
+      .search-box input::placeholder {
+        color: #9aa0a6;
+      }
+
+      /* Icon buttons */
+      .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 7px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        min-width: 38px;
+        min-height: 38px;
+      }
+      .btn-icon:hover {
+        background: var(--hover);
+      }
+      .btn-icon.mic-active {
+        color: #d93025;
+        background: #fce8e6;
+      }
+
+      @keyframes micPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.15);
+        }
+      }
+      .mic-active svg {
+        animation: micPulse 0.8s infinite;
+      }
+
+      .btn-clear {
+        display: none;
+      }
+      .search-box:focus-within .btn-clear {
+        display: flex;
+      }
+
+      /* Autocomplete dropdown */
+      .autocomplete-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 200;
+        overflow: hidden;
+        display: none;
+      }
+      .autocomplete-dropdown.open {
+        display: block;
+      }
+
+      .ac-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--text-primary);
+        transition: background 0.1s;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 44px;
+      }
+      .ac-item:hover,
+      .ac-item:active,
+      .ac-item.ac-active {
+        background: var(--hover);
+      }
+      .ac-item-icon {
+        color: var(--text-secondary);
+        flex-shrink: 0;
+      }
+      .ac-item-text {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ac-item-fill {
+        padding: 6px;
+        border-radius: 50%;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition:
+          background 0.1s,
+          color 0.1s;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        min-width: 30px;
+        min-height: 30px;
+        justify-content: center;
+      }
+      .ac-item-fill:hover {
+        background: var(--hover);
+        color: var(--blue);
+      }
+
+      /* Recent searches */
+      .recent-section {
+        margin-top: 10px;
+        width: 100%;
+      }
+      .section-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        padding: 8px 4px 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .section-label button {
+        font-size: 12px;
+        color: var(--red);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+        padding: 4px 8px;
+        border-radius: 12px;
+        transition: background 0.1s;
+      }
+      .section-label button:hover {
+        background: #fce8e6;
+      }
+
+      .recent-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 4px;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--text-primary);
+        border-radius: 8px;
+        transition: background 0.1s;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 44px;
+      }
+      .recent-item:hover,
+      .recent-item:active {
+        background: var(--hover);
+        padding-left: 8px;
+      }
+      .recent-item-del {
+        margin-left: auto;
+        padding: 4px 8px;
+        font-size: 11px;
+        color: var(--text-secondary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        font-family: inherit;
+      }
+      .recent-item-del:hover {
+        background: var(--hover);
+        color: var(--red);
+      }
+
+      /* Privacy badge */
+      .privacy-badge {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .privacy-badge svg {
+        color: var(--green);
+      }
+
+      /* Trending chips */
+      .trending-wrap {
+        margin-top: 16px;
+        width: 100%;
+      }
+      .trending-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .trend-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--hover);
+        border: none;
+        border-radius: 20px;
+        padding: 7px 14px;
+        font-size: 13px;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          background 0.15s,
+          box-shadow 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .trend-chip:hover {
+        background: #e8eaed;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Home footer */
+      .home-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        border-top: 1px solid var(--border-light);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: var(--text-secondary);
+        z-index: 10;
+      }
+      .home-footer a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+      .home-footer a:hover {
+        text-decoration: underline;
+        color: var(--text-primary);
+      }
+      .footer-links {
+        display: flex;
+        gap: 18px;
+      }
+      .footer-loc {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* ============================================================
+           RESULTS PAGE — TOPBAR
+        ============================================================ */
+      #results-page {
+        background: #fff;
+        min-height: 100vh;
+        /* must be full width, no overflow */
+        width: 100%;
+        overflow-x: hidden;
+      }
+
+      .results-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #fff;
+        border-bottom: 1px solid var(--border-light);
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+        /* prevent overflow */
+        width: 100%;
+      }
+
+      .results-topbar-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px 0;
+        /* no max-width on mobile — full width */
+        width: 100%;
+      }
+
+      /* Logo in results */
+      .results-logo {
+        flex-shrink: 0;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+      .results-logo img {
+        height: 30px;
+        width: auto;
+      }
+      .results-logo-text {
+        font-family: "Google Sans", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--blue);
+        white-space: nowrap;
+      }
+
+      /* Results search box */
+      .results-search-box {
+        flex: 1;
+        min-width: 0; /* critical for flex child not to overflow */
+        height: 44px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        background: #fff;
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s;
+        cursor: text;
+        position: relative;
+      }
+      .results-search-box:hover,
+      .results-search-box:focus-within {
+        box-shadow: var(--shadow);
+        border-color: transparent;
+      }
+      .results-search-box input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        color: var(--text-primary);
+        background: transparent;
+        font-family: inherit;
+      }
+
+      /* Autocomplete inside results bar */
+      #results-autocomplete {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 2000;
+        overflow: hidden;
+        display: none;
+      }
+      #results-autocomplete.open {
+        display: block;
+      }
+
+      /* Tabs */
+      .search-tabs {
+        display: flex;
+        padding: 0 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        width: 100%;
+      }
+      .search-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 9px 12px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        border: none;
+        background: none;
+        cursor: pointer;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+        font-family: inherit;
+        transition:
+          color 0.15s,
+          background 0.15s;
+        font-weight: 500;
+        position: relative;
+        top: 1px;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 42px;
+        flex-shrink: 0;
+      }
+      .tab-btn:hover {
+        color: var(--text-primary);
+        background: var(--hover);
+        border-radius: 6px 6px 0 0;
+      }
+      .tab-btn.active {
+        color: var(--tab-active);
+        border-bottom-color: var(--tab-active);
+      }
+      .tab-btn svg {
+        flex-shrink: 0;
+      }
+
+      /* ============================================================
+           RESULTS BODY  — SINGLE COLUMN ON MOBILE
+        ============================================================ */
+      .results-body {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        /* single column by default */
+      }
+
+      .results-left {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+      }
+
+      /* Right sidebar — hidden on mobile, shown on desktop */
+      .results-right {
+        display: none; /* hidden by default (mobile) */
+      }
+
+      /* ── DESKTOP LAYOUT (≥ 980px) ─────────────────────────────── */
+      @media (min-width: 980px) {
+        .results-topbar-inner {
+          max-width: 1300px;
+          margin: 0 auto;
+          padding: 10px 24px 0;
+          gap: 16px;
+        }
+        .results-search-box {
+          max-width: 620px;
+          height: 46px;
+          padding: 0 14px;
+        }
+        .results-search-box input {
+          font-size: 16px;
+        }
+        .results-logo img {
+          height: 36px;
+        }
+        .results-logo-text {
+          font-size: 20px;
+        }
+
+        .search-tabs {
+          max-width: 1300px;
+          margin: 2px auto 0;
+          padding: 0 24px;
+        }
+        .tab-btn {
+          font-size: 14px;
+          padding: 10px 14px;
+        }
+
+        /* Two-column layout */
+        .results-body {
+          display: flex;
+          max-width: 1300px;
+          margin: 0 auto;
+          padding: 0 24px;
+          gap: 0;
+        }
+        .results-left {
+          flex: 1;
+          min-width: 0;
+          max-width: 680px;
+          padding: 20px 0;
+        }
+        .results-right {
+          display: block;
+          width: 360px;
+          flex-shrink: 0;
+          padding: 20px 0 20px 40px;
+        }
+      }
+
+      /* ── LARGE DESKTOP (≥ 1200px) ────────────────────────────── */
+      @media (min-width: 1200px) {
+        .results-search-box {
+          max-width: 680px;
+        }
+      }
+
+      /* Results stats */
+      .results-stats {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        padding: 12px 16px 0;
+      }
+
+      /* Result card */
+      .result-card {
+        padding: 16px;
+        border-bottom: 8px solid #f1f3f4;
+        animation: fadeIn 0.3s ease;
+        background: #fff;
+      }
+      .result-card:last-child {
+        border-bottom: none;
+      }
+
+      .result-site-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .result-favicon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--hover);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid var(--border-light);
+      }
+      .result-favicon img {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+      }
+      .result-site-info {
+        flex: 1;
+        min-width: 0; /* prevent overflow */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .result-site-name {
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 400;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+      .result-breadcrumb {
+        font-size: 12px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        margin-top: 2px;
+      }
+      .result-options-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 7px;
+        border-radius: 50%;
+        color: var(--text-secondary);
+        transition: background 0.1s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        min-width: 38px;
+        min-height: 38px;
+      }
+      .result-options-btn:hover {
+        background: var(--hover);
+      }
+
+      .result-title {
+        font-size: 20px;
+        color: var(--text-link);
+        font-weight: 400;
+        line-height: 1.35;
+        cursor: pointer;
+        display: block;
+        text-decoration: none;
+        word-break: break-word;
+        margin-bottom: 6px;
+      }
+      .result-title:hover {
+        text-decoration: underline;
+      }
+      .result-title:visited {
+        color: #551a8b;
+      }
+
+      .result-snippet {
+        font-size: 14px;
+        color: #4d5156;
+        line-height: 1.6;
+        margin-top: 5px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+      }
+
+      /* Load more */
+      .load-more-btn {
+        display: flex;
+        justify-content: center;
+        margin: 24px 0;
+      }
+      .load-more-btn button {
+        background: #f1f3f4;
+        border: none;
+        border-radius: 24px;
+        padding: 12px 36px;
+        font-size: 14px;
+        color: #202124;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 500;
+        transition:
+          background 0.15s,
+          box-shadow 0.15s;
+        width: 100%;
+        max-width: 300px;
+      }
+      .load-more-btn button:hover {
+        background: #e8eaed;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Related searches */
+      .related-section {
+        margin: 20px 0 10px;
+        padding: 0 16px;
+      }
+      .related-title {
+        font-size: 18px;
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 12px;
+      }
+      .related-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .related-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--hover);
+        border-radius: var(--radius);
+        padding: 11px 16px;
+        cursor: pointer;
+        font-size: 15px;
+        color: var(--text-primary);
+        transition: background 0.15s;
+        border: none;
+        font-family: inherit;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 44px;
+      }
+      .related-item:hover {
+        background: #e8eaed;
+      }
+
+      /* Spinner */
+      .spinner-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 0;
+      }
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid var(--border-light);
+        border-top-color: var(--blue);
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+      }
+
+      /* State block (no results / error) */
+      .state-block {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+        margin: 0 16px;
+      }
+      .state-block .state-icon {
+        margin: 0 auto 16px;
+        display: block;
+        color: #dadce0;
+      }
+      .state-block h3 {
+        font-size: 20px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-weight: 400;
+      }
+      .state-block p {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      .retry-btn {
+        background: var(--blue);
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 28px;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 500;
+        transition:
+          background 0.15s,
+          box-shadow 0.15s;
+      }
+      .retry-btn:hover {
+        background: var(--blue-dark);
+        box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4);
+      }
+
+      /* Offline notice */
+      .offline-notice {
+        background: #fef7e0;
+        border: 1px solid #fdd663;
+        border-radius: 10px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 16px;
+      }
+      .offline-notice svg {
+        color: #f29900;
+        flex-shrink: 0;
+      }
+      .offline-notice p {
+        font-size: 13px;
+        color: #3c4043;
+      }
+
+      /* ============================================================
+           IMAGES TAB
+        ============================================================ */
+      .image-grid {
+        columns: 2;
+        column-gap: 10px;
+        padding: 14px 12px;
+      }
+      @media (min-width: 480px) {
+        .image-grid {
+          columns: 3;
+        }
+      }
+      @media (min-width: 720px) {
+        .image-grid {
+          columns: 4;
+        }
+      }
+
+      .image-card {
+        break-inside: avoid;
+        margin-bottom: 10px;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+        cursor: pointer;
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      .image-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+        transform: translateY(-2px);
+      }
+      .image-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        background: var(--hover);
+        transition: opacity 0.4s;
+      }
+      .image-card-label {
+        padding: 8px 10px;
+      }
+      .image-card-label p {
+        font-size: 12px;
+        color: var(--text-primary);
+        font-weight: 500;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .image-card-label span {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      /* ============================================================
+           NEWS TAB
+        ============================================================ */
+      .news-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px 12px;
+      }
+      .news-card {
+        display: flex;
+        gap: 14px;
+        padding: 14px;
+        background: #fff;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        cursor: pointer;
+        transition:
+          box-shadow 0.15s,
+          transform 0.15s;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .news-card:hover {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+      }
+      .news-card-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .news-source-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+      .news-source-row img {
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .news-source-row span {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+      .news-title {
+        font-size: 15px;
+        color: var(--text-primary);
+        font-weight: 500;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      .news-time {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .news-img {
+        width: 80px;
+        height: 80px;
+        min-width: 80px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--hover);
+        flex-shrink: 0;
+      }
+      .news-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* ============================================================
+           SHOPPING TAB — "Coming Soon" state
+        ============================================================ */
+      .shopping-coming-soon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+      }
+      .shopping-coming-soon .state-icon {
+        margin: 0 auto 16px;
+        display: block;
+        color: var(--text-secondary);
+      }
+      .shopping-coming-soon h3 {
+        font-size: 20px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        font-weight: 400;
+      }
+      .shopping-coming-soon p {
+        font-size: 14px;
+        line-height: 1.5;
+        max-width: 400px;
+      }
+
+      /* ============================================================
+           MAPS TAB
+        ============================================================ */
+      .map-wrap {
+        width: 100%;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+        margin: 14px 12px;
+        box-sizing: border-box;
+        width: calc(100% - 24px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .map-wrap iframe {
+        width: 100%;
+        height: calc(100vh - 200px);
+        min-height: 360px;
+        border: none;
+        display: block;
+      }
+
+      /* ============================================================
+           RESULT OPTIONS BOTTOM SHEET
+        ============================================================ */
+      #sheet-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 1000;
+        display: none;
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+      }
+      #sheet-overlay.open {
+        display: block;
+        animation: fadeIn 0.2s ease;
+      }
+
+      #options-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        z-index: 1001;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-height: 85vh;
+        overflow-y: auto;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+      #options-sheet.open {
+        transform: translateY(0);
+      }
+
+      .sheet-handle-bar {
+        display: flex;
+        justify-content: center;
+        padding: 12px;
+        cursor: pointer;
+      }
+      .sheet-handle {
+        width: 44px;
+        height: 4px;
+        background: #dadce0;
+        border-radius: 2px;
+      }
+
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 20px 16px;
+      }
+      .sheet-fav {
+        width: 40px;
+        height: 40px;
+        background: var(--hover);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .sheet-fav img {
+        width: 20px;
+        height: 20px;
+      }
+      .sheet-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .sheet-site-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .sheet-site-url {
+        font-size: 12px;
+        color: var(--text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .sheet-close-btn {
+        background: var(--hover);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--text-secondary);
+      }
+      .sheet-close-btn:hover {
+        background: #e0e0e0;
+      }
+
+      .sheet-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 0 20px 20px;
+      }
+      .sheet-action {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+        background: var(--hover);
+        border: none;
+        border-radius: 14px;
+        padding: 14px 8px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+        -webkit-tap-highlight-color: transparent;
+        min-height: 72px;
+      }
+      .sheet-action:hover {
+        background: #e8eaed;
+      }
+      .sheet-action svg {
+        color: var(--text-primary);
+      }
+      .sheet-action span {
+        font-size: 12px;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .sheet-summary {
+        padding: 0 20px 28px;
+      }
+      .sheet-summary-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--blue);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .sheet-summary-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.58;
+      }
+
+      /* ============================================================
+           RESULTS FOOTER
+        ============================================================ */
+      .results-footer {
+        background: var(--bg);
+        border-top: 1px solid var(--border-light);
+        padding: 20px 20px 28px;
+        text-align: center;
+        margin-top: 24px;
+      }
+      .results-footer .footer-loc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+      }
+      .results-footer .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px 16px;
+        font-size: 13px;
+        margin-bottom: 10px;
+      }
+      .results-footer .footer-links a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+      .results-footer .footer-links a:hover {
+        text-decoration: underline;
+      }
+      .results-footer .footer-copy {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* ============================================================
+           TOAST
+        ============================================================ */
+      #toast {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translate(-50%, 16px);
+        background: #323232;
+        color: #fff;
+        padding: 11px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 9999;
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+        white-space: nowrap;
+        max-width: 90vw;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      /* ============================================================
+           SAFE AREA (iPhone notch)
+        ============================================================ */
+      @supports (padding-bottom: env(safe-area-inset-bottom)) {
+        .home-footer {
+          padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+        #options-sheet {
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+      }
+
+      /* ============================================================
+           RESPONSIVE TWEAKS — small mobile
+        ============================================================ */
+      @media (max-width: 400px) {
+        .tab-btn {
+          font-size: 12px;
+          padding: 8px 9px;
+          gap: 4px;
+        }
+        .tab-btn svg {
+          display: none;
+        }
+        .result-title {
+          font-size: 16px;
+        }
+        .result-snippet {
+          font-size: 13px;
+        }
+        .home-footer {
+          display: none;
+        }
+        .news-img {
+          width: 70px;
+          height: 70px;
+          min-width: 70px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .home-footer {
+          display: none;
+        }
+      }
+
+      /* ============================================================
+           SKELETON LOADERS
+        ============================================================ */
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e8e8e8 50%,
+          #f0f0f0 75%
+        );
+        background-size: 800px 100%;
+        animation: shimmer 1.4s infinite linear;
+        border-radius: 6px;
+      }
+
+      /* Voice Search Overlay */
+      .voice-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 2000;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .voice-overlay.open {
+        display: flex;
+        animation: fadeIn 0.2s ease;
+      }
+      .voice-modal {
+        width: 100%;
+        max-width: 600px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+      .voice-close {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 8px;
+        border-radius: 50%;
+      }
+      .voice-close:hover {
+        background: var(--hover);
+      }
+      .voice-text {
+        font-size: 24px;
+        color: var(--text-primary);
+        margin-top: 20vh;
+        text-align: center;
+        padding: 0 24px;
+        height: 60px;
+        font-weight: 400;
+      }
+      .voice-mic-container {
+        position: absolute;
+        bottom: 20vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .voice-mic-btn {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid var(--border);
+        color: #d93025;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 2;
+      }
+      .voice-mic-ring {
+        position: absolute;
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: rgba(217, 48, 37, 0.2);
+        z-index: 1;
+        transform: scale(1);
+        transition: transform 0.1s linear;
+      }
+      .voice-mic-pulse {
+        animation: voicePulse 1.5s infinite;
+      }
+      @keyframes voicePulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(2);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ======================================================
+     HOME PAGE
+     ====================================================== -->
+    <div id="home-page" class="page active">
+      <div class="home-center">
+        <!-- Logo -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;">
+          <img
+            src="https://i.ibb.co/Y7Lbp9Fm/1776772957883.png"
+            alt="Nova Search"
+            class="home-logo"
+            id="home-logo-img"
+            style="margin-bottom: -2px;"
+          />
+          <span style="font-family: 'Google Sans', sans-serif; font-size: 14px; font-weight: 500; color: #70757a; letter-spacing: 3px; text-transform: uppercase;">Browser</span>
+        </div>
+
+        <!-- Search Box -->
+        <div class="search-box-wrap">
+          <div
+            class="search-box"
+            onclick="document.getElementById('home-input').focus()"
+          >
+            <svg
+              class="ac-item-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              style="flex-shrink: 0"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              id="home-input"
+              type="text"
+              placeholder="Search the web privately..."
+              autocomplete="off"
+              spellcheck="true"
+              enterkeyhint="search"
+              oninput="onHomeInput(this.value)"
+              onkeydown="onHomeKeydown(event)"
+              onfocus="onHomeInputFocus(this.value)"
+            />
+            <button
+              class="btn-icon btn-clear"
+              id="home-clear-btn"
+              onclick="clearHomeInput()"
+              title="Clear"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <button
+              class="btn-icon"
+              id="home-mic-btn"
+              onclick="startVoiceSearch('home')"
+              title="Voice search"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"
+                />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+          </div>
+          <div id="home-autocomplete" class="autocomplete-dropdown"></div>
+        </div>
+
+        <!-- Recent searches -->
+        <div class="recent-section" id="home-recent-section"></div>
+
+        <!-- Trending section removed -->
+
+        <!-- Privacy badge -->
+        <div class="privacy-badge">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          Privacy-first search &mdash; NovaGo Browser
+        </div>
+      </div>
+
+      <footer class="home-footer">
+        <div class="footer-loc">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span id="footer-location">Bangladesh</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">About NovaGo</a>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ======================================================
+     RESULTS PAGE
+     ====================================================== -->
+    <div id="results-page" class="page">
+      <div class="results-topbar">
+        <div class="results-topbar-inner">
+          <!-- Logo -->
+          <a
+            class="results-logo"
+            href="#"
+            onclick="
+              showHomePage();
+              return false;
+            "
+            title="Nova Search Home"
+          >
+            <img
+              src="https://i.ibb.co/Y7Lbp9Fm/1776772957883.png"
+              alt="Nova"
+            />
+          </a>
+
+          <!-- Search box -->
+          <div
+            class="results-search-box"
+            onclick="document.getElementById('results-input').focus()"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="color: #9aa0a6; flex-shrink: 0"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              id="results-input"
+              type="text"
+              autocomplete="off"
+              enterkeyhint="search"
+              spellcheck="true"
+              oninput="onResultsInput(this.value)"
+              onkeydown="onResultsKeydown(event)"
+            />
+            <button
+              class="btn-icon btn-clear"
+              id="results-clear-btn"
+              onclick="clearResultsInput()"
+              title="Clear"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <button
+              class="btn-icon"
+              id="results-mic-btn"
+              onclick="startVoiceSearch('results')"
+              title="Voice search"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"
+                />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <div id="results-autocomplete"></div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="search-tabs">
+          <button
+            class="tab-btn active"
+            id="tab-all"
+            onclick="switchTab('all')"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            All
+          </button>
+          <button class="tab-btn" id="tab-images" onclick="switchTab('images')">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            Images
+          </button>
+          <button class="tab-btn" id="tab-news" onclick="switchTab('news')">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <path
+                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
+              />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            News
+          </button>
+          <button
+            class="tab-btn"
+            id="tab-shopping"
+            onclick="switchTab('shopping')"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            Shopping
+          </button>
+          <button class="tab-btn" id="tab-maps" onclick="switchTab('maps')">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+            >
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            Maps
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="results-body">
+        <div class="results-left">
+          <!-- ALL tab -->
+          <div id="content-all">
+            <div
+              id="offline-notice"
+              class="offline-notice"
+              style="display: none"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="1" y1="1" x2="23" y2="23" />
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+                <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                <line x1="12" y1="20" x2="12.01" y2="20" />
+              </svg>
+              <p>You are offline. Please check your internet connection.</p>
+            </div>
+            <div id="results-list"></div>
+            <div
+              id="related-section"
+              class="related-section"
+              style="display: none"
+            >
+              <h3 class="related-title">Related searches</h3>
+              <div class="related-grid" id="related-grid"></div>
+            </div>
+          </div>
+
+          <!-- IMAGES tab -->
+          <div id="content-images" style="display: none">
+            <div id="image-grid" class="image-grid"></div>
+          </div>
+
+          <!-- NEWS tab -->
+          <div id="content-news" style="display: none">
+            <div id="news-list" class="news-list"></div>
+          </div>
+
+          <!-- SHOPPING tab — always shows "coming soon" -->
+          <div id="content-shopping" style="display: none">
+            <div class="shopping-coming-soon">
+              <svg
+                class="state-icon"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <h3>Shopping is Coming Soon</h3>
+              <p>
+                The Shopping feature is not available in this web version yet.
+                Get the full experience in the NovaGo Browser app.
+              </p>
+            </div>
+          </div>
+
+          <!-- MAPS tab -->
+          <div id="content-maps" style="display: none">
+            <div id="map-container"></div>
+          </div>
+
+          <!-- Footer (only for All tab) -->
+          <div class="results-footer" id="results-footer" style="display: none">
+            <div class="footer-loc">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span id="results-location">Bangladesh</span>
+            </div>
+            <div class="footer-links">
+              <a href="#">Help</a>
+              <a href="#">Privacy</a>
+              <a href="#">Terms</a>
+              <a href="#">Feedback</a>
+            </div>
+            <div class="footer-copy">
+              &copy; 2026 Nova Browser &mdash; search.novago.info
+            </div>
+          </div>
+        </div>
+
+        <!-- Right sidebar (desktop only) -->
+        <div class="results-right" id="results-right"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Sheet -->
+    <div id="sheet-overlay" onclick="closeSheet()"></div>
+    <div id="options-sheet">
+      <div class="sheet-handle-bar" onclick="closeSheet()">
+        <div class="sheet-handle"></div>
+      </div>
+      <div class="sheet-header">
+        <div class="sheet-fav">
+          <img
+            id="sheet-fav-img"
+            src=""
+            alt=""
+            onerror="this.style.display = 'none'"
+          />
+        </div>
+        <div class="sheet-info">
+          <div class="sheet-site-name" id="sheet-title">Website</div>
+          <div class="sheet-site-url" id="sheet-url">—</div>
+        </div>
+        <button class="sheet-close-btn" onclick="closeSheet()">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-actions">
+        <button class="sheet-action" onclick="sheetAction('open')">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+            />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          <span>Open</span>
+        </button>
+        <button class="sheet-action" onclick="sheetAction('copy')">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span>Copy link</span>
+        </button>
+        <button class="sheet-action" onclick="sheetAction('share')">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="18" cy="5" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          <span>Share</span>
+        </button>
+      </div>
+      <div class="sheet-summary">
+        <div class="sheet-summary-label">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            />
+          </svg>
+          AI Summary
+        </div>
+        <div class="sheet-summary-text" id="sheet-snippet">
+          No summary available.
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Voice Search Overlay -->
+    <div id="voice-overlay" class="voice-overlay">
+      <div class="voice-modal">
+        <button class="voice-close" onclick="stopVoiceSearch()">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <div class="voice-text" id="voice-text">Speak now</div>
+        <div class="voice-mic-container">
+          <div class="voice-mic-ring" id="voice-mic-ring"></div>
+          <button
+            class="voice-mic-btn"
+            id="voice-mic-main"
+            onclick="stopVoiceSearch()"
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // NOVA SEARCH — search.novago.info
+      // ============================================================
+
+      const SEARCH_API =
+        "https://forhad278sh-my-bangla-search.hf.space/search?q=";
+      const RESULTS_PER_PAGE = 10;
+      const AC_DELAY = 180;
+      const SEARCH_TIMEOUT = 10000;
+
+      let currentQuery = "";
+      let currentTab = "all";
+      let allResults = [];
+      let loadedCount = 0;
+      let sheetData = null;
+      let acTimer = null;
+      let activeAcScript = null;
+      let isListening = false;
+      let recognition = null;
+
+      const TRENDING = [
+        "Bangladesh cricket",
+        "AI latest news",
+        "Dhaka weather",
+        "BPL 2026",
+        "Tech news today",
+        "Nova Browser update",
+      ];
+
+      // ============================================================
+      // PAGE NAVIGATION
+      // ============================================================
+      function showHomePage() {
+        const home = document.getElementById("home-page");
+        const results = document.getElementById("results-page");
+
+        home.classList.add("active", "page-enter-left");
+        results.classList.remove("active");
+        home.addEventListener(
+          "animationend",
+          () => home.classList.remove("page-enter-left"),
+          { once: true },
+        );
+
+        document.title = "Nova Search";
+        history.pushState({}, "", window.location.pathname);
+
+        requestAnimationFrame(() => {
+          const inp = document.getElementById("home-input");
+          if (inp) inp.focus();
+        });
+
+        renderRecentSearches();
+        renderTrending();
+      }
+
+      function showResultsPage() {
+        const home = document.getElementById("home-page");
+        const results = document.getElementById("results-page");
+
+        window.scrollTo({ top: 0, behavior: "instant" });
+
+        home.classList.remove("active");
+        results.classList.add("active", "page-enter-right");
+        results.addEventListener(
+          "animationend",
+          () => results.classList.remove("page-enter-right"),
+          { once: true },
+        );
+      }
+
+      // ============================================================
+      // HOME INPUT
+      // ============================================================
+      function onHomeInput(val) {
+        document.getElementById("home-clear-btn").style.display = val
+          ? "flex"
+          : "none";
+        if (!val.trim()) {
+          closeAC("home-autocomplete");
+          renderRecentSearches();
+          return;
+        }
+        document.getElementById("home-recent-section").innerHTML = "";
+        fetchAC(val, "home-autocomplete", true);
+      }
+
+      function onHomeInputFocus(val) {
+        if (!val.trim()) {
+          renderRecentSearches();
+          renderTrending();
+        } else fetchAC(val, "home-autocomplete", true);
+      }
+
+      function handleKeyNav(e, inputId, listId) {
+        if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return false;
+        const list = document.getElementById(listId);
+        if (!list || !list.classList.contains('open')) return false;
+        
+        e.preventDefault();
+        const items = Array.from(list.querySelectorAll('.ac-item'));
+        if (!items.length) return false;
+        
+        let focusIndex = items.findIndex(el => el.classList.contains('ac-active'));
+        
+        items.forEach(el => el.classList.remove('ac-active'));
+        
+        if (e.key === 'ArrowDown') {
+            focusIndex = (focusIndex + 1) >= items.length ? 0 : (focusIndex + 1);
+        } else if (e.key === 'ArrowUp') {
+            focusIndex = (focusIndex - 1) < 0 ? (items.length - 1) : (focusIndex - 1);
+        }
+        
+        items[focusIndex].classList.add('ac-active');
+        
+        // Don't auto-fill input while navigating to match modern behavior correctly, 
+        // wait for Enter or click to fill it. 
+        // Or if we want Google behavior, we update input value:
+        const tSpan = items[focusIndex].querySelector('.ac-item-text');
+        if (tSpan) {
+            document.getElementById(inputId).value = tSpan.innerText;
+        }
+        return true;
+      }
+
+      function onHomeKeydown(e) {
+        if (handleKeyNav(e, "home-input", "home-autocomplete")) return;
+        if (e.key === "Enter") {
+          const v = document.getElementById("home-input").value.trim();
+          if (v) doSearch(v);
+        }
+        if (e.key === "Escape") {
+          closeAC("home-autocomplete");
+          document.getElementById("home-input").blur();
+        }
+      }
+
+      function clearHomeInput() {
+        document.getElementById("home-input").value = "";
+        document.getElementById("home-clear-btn").style.display = "none";
+        closeAC("home-autocomplete");
+        renderRecentSearches();
+        document.getElementById("home-input").focus();
+      }
+
+      // ============================================================
+      // RESULTS INPUT
+      // ============================================================
+      function onResultsInput(val) {
+        document.getElementById("results-clear-btn").style.display = val
+          ? "flex"
+          : "none";
+        if (!val.trim()) {
+          closeAC("results-autocomplete");
+          return;
+        }
+        fetchAC(val, "results-autocomplete", false);
+      }
+
+      function onResultsKeydown(e) {
+        if (handleKeyNav(e, "results-input", "results-autocomplete")) return;
+        if (e.key === "Enter") {
+          const v = document.getElementById("results-input").value.trim();
+          if (v) doSearch(v);
+        }
+        if (e.key === "Escape") closeAC("results-autocomplete");
+      }
+
+      function clearResultsInput() {
+        document.getElementById("results-input").value = "";
+        document.getElementById("results-clear-btn").style.display = "none";
+        closeAC("results-autocomplete");
+        document.getElementById("results-input").focus();
+      }
+
+      // ============================================================
+      // AUTOCOMPLETE
+      // ============================================================
+      function fetchAC(query, containerId, isHome) {
+        clearTimeout(acTimer);
+        acTimer = setTimeout(() => {
+          if (activeAcScript && activeAcScript.parentNode) {
+            activeAcScript.parentNode.removeChild(activeAcScript);
+            activeAcScript = null;
+          }
+          const cbName = "__nova_ac_" + Date.now();
+          window[cbName] = function (data) {
+            const suggestions = data && data[1] ? data[1].slice(0, 7) : [];
+            renderAC(query, suggestions, containerId, isHome);
+            cleanupCallback(cbName);
+          };
+          const s = document.createElement("script");
+          s.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}&callback=${cbName}`;
+          s.onerror = () => cleanupCallback(cbName);
+          document.head.appendChild(s);
+          activeAcScript = s;
+        }, AC_DELAY);
+      }
+
+      function cleanupCallback(name) {
+        delete window[name];
+        const el = document.querySelector(`script[src*="${name}"]`);
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      }
+
+      function renderAC(query, suggestions, containerId, isHome) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        if (!suggestions.length) {
+          closeAC(containerId);
+          return;
+        }
+
+        el.innerHTML = suggestions
+          .map((s) => {
+            const safe = esc(s);
+            const safeQ = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+            return `
+        <div class="ac-item" onclick="doSearch('${safeQ}')">
+            <svg class="ac-item-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span class="ac-item-text">${safe}</span>
+            <span class="ac-item-fill" onclick="event.stopPropagation(); fillInput('${safeQ}', '${isHome ? "home" : "results"}')" title="Fill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><path d="M21 3L9 15M10 4H3v17h17v-7"/></svg>
+            </span>
+        </div>`;
+          })
+          .join("");
+        el.classList.add("open");
+
+        setTimeout(() => {
+          document.addEventListener("click", function handler(e) {
+            const box = isHome
+              ? document.querySelector(".search-box-wrap")
+              : document.querySelector(".results-search-box");
+            if (box && box.contains(e.target)) return;
+            closeAC(containerId);
+            document.removeEventListener("click", handler);
+          });
+        }, 50);
+      }
+
+      function closeAC(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("open");
+          el.innerHTML = "";
+        }
+      }
+
+      function fillInput(q, where) {
+        const id = where === "home" ? "home-input" : "results-input";
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = q;
+          el.focus();
+        }
+      }
+
+      // ============================================================
+      // VOICE SEARCH
+      // ============================================================
+      function startVoiceSearch(where) {
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          showToast("Voice search not supported in this browser");
+          return;
+        }
+
+        const overlay = document.getElementById("voice-overlay");
+        const text = document.getElementById("voice-text");
+        const ring = document.getElementById("voice-mic-ring");
+
+        if (isListening) {
+          stopVoiceSearch();
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = "bn-BD";
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        isListening = true;
+        overlay.classList.add("open");
+        text.textContent = "Listening...";
+        ring.classList.add("voice-mic-pulse");
+
+        recognition.onresult = (event) => {
+          let interimTranscript = "";
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          if (interimTranscript) {
+            text.textContent = interimTranscript;
+          }
+          if (finalTranscript) {
+            text.textContent = finalTranscript;
+            stopVoiceSearch();
+            setTimeout(() => doSearch(finalTranscript), 300);
+          }
+        };
+
+        recognition.onerror = (e) => {
+          text.textContent =
+            e.error === "no-speech"
+              ? "Didn't catch that. Try speaking again."
+              : "Voice error: " + e.error;
+          ring.classList.remove("voice-mic-pulse");
+          setTimeout(() => stopVoiceSearch(), 2000);
+        };
+
+        recognition.onend = () => {
+          if (isListening) stopVoiceSearch();
+        };
+
+        try {
+          recognition.start();
+        } catch (e) {
+          stopVoiceSearch();
+        }
+      }
+
+      function stopVoiceSearch() {
+        isListening = false;
+        document.getElementById("voice-overlay").classList.remove("open");
+        document
+          .getElementById("voice-mic-ring")
+          .classList.remove("voice-mic-pulse");
+        if (recognition) {
+          try {
+            recognition.stop();
+          } catch (e) {}
+        }
+      }
+
+      // ============================================================
+      // RECENT SEARCHES
+      // ============================================================
+      function saveRecent(q) {
+        if (!q.trim()) return;
+        let data = getRecent();
+        data = data.filter((x) => x.toLowerCase() !== q.trim().toLowerCase());
+        data.unshift(q.trim());
+        data = data.slice(0, 8);
+        try {
+          localStorage.setItem("nova_recent", JSON.stringify(data));
+        } catch (e) {}
+      }
+
+      function getRecent() {
+        try {
+          return JSON.parse(localStorage.getItem("nova_recent") || "[]");
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function deleteRecent(q) {
+        let data = getRecent().filter((x) => x !== q);
+        try {
+          localStorage.setItem("nova_recent", JSON.stringify(data));
+        } catch (e) {}
+        renderRecentSearches();
+      }
+
+      function renderRecentSearches() {
+        const recent = getRecent();
+        const section = document.getElementById("home-recent-section");
+        if (!section) return;
+        if (!recent.length) {
+          section.innerHTML = "";
+          return;
+        }
+
+        section.innerHTML = `
+        <div class="section-label">
+            <span>Recent</span>
+            <button onclick="clearAllRecent()">Clear all</button>
+        </div>
+        ${recent
+          .map(
+            (r) => `
+            <div class="recent-item" onclick="doSearch('${esc(r).replace(/'/g, "\\'")}')" title="${esc(r)}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#9aa0a6;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r)}</span>
+                <button class="recent-item-del" onclick="event.stopPropagation(); deleteRecent('${esc(r).replace(/'/g, "\\'")}')">✕</button>
+            </div>`,
+          )
+          .join("")}`;
+      }
+
+      function clearAllRecent() {
+        try {
+          localStorage.removeItem("nova_recent");
+        } catch (e) {}
+        document.getElementById("home-recent-section").innerHTML = "";
+      }
+
+      function renderTrending() {
+        // Removed trending feature
+      }
+
+      // ============================================================
+      // MAIN SEARCH
+      // ============================================================
+      async function doSearch(query) {
+        if (!query.trim()) return;
+        query = query.trim();
+        currentQuery = query;
+
+        saveRecent(query);
+        closeAC("home-autocomplete");
+        closeAC("results-autocomplete");
+
+        const urlParams = new URLSearchParams();
+        urlParams.set("q", query);
+        history.pushState({ q: query }, "", "?" + urlParams.toString());
+
+        showResultsPage();
+        document.getElementById("results-input").value = query;
+        document.getElementById("results-clear-btn").style.display = "flex";
+        document.title = `${query} — Nova Search`;
+
+        resetTabContents();
+        switchTab("all", false);
+
+        await fetchWebResults(query);
+      }
+
+      function resetTabContents() {
+        document.getElementById("image-grid").innerHTML = "";
+        document.getElementById("news-list").innerHTML = "";
+        document.getElementById("map-container").innerHTML = "";
+      }
+
+      // ── Fetch web results ──────────────────────────────────────
+      async function fetchWebResults(query) {
+        const list = document.getElementById("results-list");
+        const footer = document.getElementById("results-footer");
+        const relSec = document.getElementById("related-section");
+        const offNotice = document.getElementById("offline-notice");
+
+        relSec.style.display = "none";
+        footer.style.display = "none";
+        list.innerHTML = getSkeletonHTML('web');
+
+        if (!navigator.onLine) {
+          offNotice.style.display = "flex";
+          list.innerHTML = stateBlock(
+            "wifi-off",
+            "No internet connection",
+            "Please check your Wi-Fi or mobile data and try again.",
+          );
+          return;
+        }
+        offNotice.style.display = "none";
+
+        const t0 = Date.now();
+
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), SEARCH_TIMEOUT);
+
+          const res = await fetch(SEARCH_API + encodeURIComponent(query), {
+            signal: ctrl.signal,
+          });
+          clearTimeout(timer);
+
+          if (!res.ok) throw new Error("HTTP " + res.status);
+
+          const raw = await res.json();
+          allResults = Array.isArray(raw)
+            ? raw
+            : raw.results || raw.data || raw.organic_results || [];
+          loadedCount = Math.min(RESULTS_PER_PAGE, allResults.length);
+
+          renderWebResults(allResults.slice(0, loadedCount), list, false);
+          if (allResults.length > loadedCount) appendLoadMore(list);
+
+          logSearchToFirestore(query);
+
+          footer.style.display = "block";
+          fetchRelated(query);
+          fetchLocationLabel("results-location");
+        } catch (err) {
+          if (err.name === "AbortError") {
+            list.innerHTML = stateBlock(
+              "clock",
+              "Request timed out",
+              "The search server took too long to respond.",
+              `fetchWebResults('${query.replace(/'/g, "\\'")}')`,
+              "Try again",
+            );
+          } else {
+            list.innerHTML = stateBlock(
+              "x-circle",
+              "Search server unreachable",
+              "Could not connect to Nova Search. Please check your configuration.",
+              `fetchWebResults('${query.replace(/'/g, "\\'")}')`,
+              "Retry",
+            );
+          }
+        }
+      }
+
+      function getSkeletonHTML(type) {
+        if (type === 'web') {
+            const card = `
+            <div class="result-card" style="pointer-events: none;">
+                <div class="result-site">
+                    <div class="skeleton" style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border-light); background-color: #f1f3f4;"></div>
+                    <div style="flex:1">
+                        <div class="skeleton" style="width: 100px; height: 14px; margin-bottom: 6px; background-color: #f1f3f4;"></div>
+                        <div class="skeleton" style="width: 140px; height: 12px; background-color: #f1f3f4;"></div>
+                    </div>
+                </div>
+                <div class="skeleton" style="width: 75%; height: 24px; margin-bottom: 12px; background-color: #f1f3f4; border-radius: 8px;"></div>
+                <div class="skeleton" style="width: 100%; height: 16px; margin-bottom: 8px; background-color: #f1f3f4; border-radius: 4px;"></div>
+                <div class="skeleton" style="width: 90%; height: 16px; background-color: #f1f3f4; border-radius: 4px;"></div>
+            </div>`;
+            return card.repeat(5);
+        } else if (type === 'news') {
+            const card = `
+            <div class="news-card" style="pointer-events: none;">
+                <div class="news-card-body">
+                    <div class="skeleton" style="width: 80px; height: 12px; margin-bottom: 8px; background-color: #f1f3f4;"></div>
+                    <div class="skeleton" style="width: 100%; height: 18px; margin-bottom: 6px; background-color: #f1f3f4;"></div>
+                    <div class="skeleton" style="width: 70%; height: 18px; margin-bottom: 10px; background-color: #f1f3f4;"></div>
+                    <div class="skeleton" style="width: 60px; height: 12px; background-color: #f1f3f4;"></div>
+                </div>
+                <div class="news-img skeleton" style="border: none; background-color: #f1f3f4;"></div>
+            </div>`;
+            return card.repeat(4);
+        } else if (type === 'image') {
+            const card = `<div class="image-card skeleton" style="height: 180px; border: none; background-color: #f1f3f4;"></div>`;
+            return card.repeat(12);
+        }
+        return '';
+      }
+
+      function stateBlock(icon, title, msg, retryFn, retryLabel) {
+        const icons = {
+          "wifi-off": `<line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>`,
+          clock: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+          "x-circle": `<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`,
+        };
+        const svgPath = icons[icon] || icons["x-circle"];
+        const retry = retryFn
+          ? `<button class="retry-btn" onclick="${retryFn}">${retryLabel || "Retry"}</button>`
+          : "";
+        return `
+        <div class="state-block">
+            <svg class="state-icon" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${svgPath}</svg>
+            <h3>${title}</h3>
+            <p>${msg}</p>
+            ${retry}
+        </div>`;
+      }
+
+      function renderWebResults(results, container, append) {
+        if (!results.length) {
+          container.innerHTML = `
+            <div class="state-block">
+                <svg class="state-icon" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <h3>No results found for &ldquo;${esc(currentQuery)}&rdquo;</h3>
+                <p>Try different keywords or check your spelling.</p>
+            </div>`;
+          return;
+        }
+        const html = results.map((r) => buildResultCard(r)).join("");
+        if (append) container.insertAdjacentHTML("beforeend", html);
+        else container.innerHTML = html;
+      }
+
+      function buildResultCard(r) {
+        const title = esc(r.title || "No Title");
+        const link = r.link || r.url || "#";
+        const snippet = esc(r.snippet || r.description || "");
+        let domain = "";
+        try {
+          domain = new URL(link).hostname;
+        } catch (e) {
+          domain = link;
+        }
+        const siteName = domain.replace(/^www\./, "");
+        const breadcrumb =
+          link.length > 65 ? link.substring(0, 65) + "…" : link;
+        const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        const tSafe = (r.title || "")
+          .replace(/\\/g, "\\\\")
+          .replace(/'/g, "\\'");
+        const sSafe = (r.snippet || r.description || "")
+          .replace(/\\/g, "\\\\")
+          .replace(/'/g, "\\'");
+        const lSafe = link.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
+        return `
+    <div class="result-card">
+        <div class="result-site-row">
+            <div class="result-favicon">
+                <img src="${favicon}" alt="" loading="lazy" onerror="this.style.display='none'">
+            </div>
+            <div class="result-site-info">
+                <span class="result-site-name">${esc(siteName)}</span>
+                <span class="result-breadcrumb">${esc(breadcrumb)}</span>
+            </div>
+            <button class="result-options-btn"
+                onclick="openSheet('${tSafe}','${lSafe}','${sSafe}')"
+                title="More options" aria-label="More options">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5"  r="1.5"/>
+                    <circle cx="12" cy="12" r="1.5"/>
+                    <circle cx="12" cy="19" r="1.5"/>
+                </svg>
+            </button>
+        </div>
+        <a class="result-title" href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>
+        ${snippet ? `<p class="result-snippet">${snippet}</p>` : ""}
+    </div>`;
+      }
+
+      function appendLoadMore(container) {
+        container.insertAdjacentHTML(
+          "beforeend",
+          `
+        <div class="load-more-btn">
+            <button onclick="loadMore()">More results</button>
+        </div>`,
+        );
+      }
+
+      function loadMore() {
+        const container = document.getElementById("results-list");
+        container.querySelector(".load-more-btn")?.remove();
+        const next = allResults.slice(
+          loadedCount,
+          loadedCount + RESULTS_PER_PAGE,
+        );
+        loadedCount += next.length;
+        renderWebResults(next, container, true);
+        if (loadedCount < allResults.length) appendLoadMore(container);
+      }
+
+      async function logSearchToFirestore(query) {
+        if (!window._firebaseReady || !window._db) return;
+        try {
+          const { collection, addDoc, serverTimestamp } = window._fs;
+          await addDoc(collection(window._db, "searches"), {
+            query: query,
+            timestamp: serverTimestamp(),
+            ua: navigator.userAgent.substring(0, 120),
+          });
+        } catch (e) {
+          /* non-critical */
+        }
+      }
+
+      // ============================================================
+      // TAB SWITCHING
+      // ============================================================
+      function switchTab(tab, doFetch = true) {
+        currentTab = tab;
+        const TABS = ["all", "images", "news", "shopping", "maps"];
+
+        TABS.forEach((t) => {
+          document
+            .getElementById("tab-" + t)
+            .classList.toggle("active", t === tab);
+          document.getElementById("content-" + t).style.display =
+            t === tab ? "block" : "none";
+        });
+
+        const footer = document.getElementById("results-footer");
+        if (footer) footer.style.display = tab === "all" ? "block" : "none";
+
+        if (!currentQuery || !doFetch) return;
+
+        if (
+          tab === "images" &&
+          !document.getElementById("image-grid").children.length
+        )
+          fetchImages(currentQuery);
+        if (
+          tab === "news" &&
+          !document.getElementById("news-list").children.length
+        )
+          fetchNews(currentQuery);
+        if (
+          tab === "maps" &&
+          !document.getElementById("map-container").children.length
+        )
+          loadMap(currentQuery);
+        // Shopping tab always shows "coming soon" — no fetch needed
+      }
+
+      // ============================================================
+      // IMAGES TAB
+      // ============================================================
+      async function fetchImages(query) {
+        const grid = document.getElementById("image-grid");
+        grid.innerHTML = getSkeletonHTML('image');
+
+        try {
+          const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=40&pithumbsize=800`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("Wikipedia error");
+          const data = await res.json();
+
+          let results = [];
+          if (data.query && data.query.pages) {
+            Object.values(data.query.pages).forEach((p) => {
+              if (p.thumbnail && p.thumbnail.source) {
+                results.push({
+                  url: p.thumbnail.source,
+                  page: `https://en.wikipedia.org/wiki/${encodeURIComponent(p.title)}`,
+                  title: p.title,
+                  domain: "wikipedia.org",
+                });
+              }
+            });
+          }
+
+          if (!results.length) throw new Error("No images");
+          results = results.sort(() => Math.random() - 0.5);
+
+          grid.innerHTML = results
+            .map(
+              (img) => `
+            <div class="image-card" onclick="window.open('${img.page}', '_blank', 'noopener')" title="${esc(img.title)}">
+                <img src="${img.url}" alt="${esc(img.title)}" loading="lazy"
+                    style="opacity:0;" onload="this.style.opacity='1'"
+                    onerror="this.closest('.image-card').style.display='none'">
+                <div class="image-card-label">
+                    <p>${esc(img.title)}</p>
+                    <span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        ${img.domain}
+                    </span>
+                </div>
+            </div>`,
+            )
+            .join("");
+        } catch (e) {
+          grid.innerHTML = `
+            <div class="state-block" style="column-span:all">
+                <svg class="state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <h3>No images found</h3>
+                <p>Try different keywords.</p>
+            </div>`;
+        }
+      }
+
+      // ============================================================
+      // NEWS TAB
+      // ============================================================
+      async function fetchNews(query) {
+        const list = document.getElementById("news-list");
+        list.innerHTML = getSkeletonHTML('news');
+
+        const fallbackImg =
+          "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&q=70";
+
+        try {
+          const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=extracts|pageimages&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&exsentences=2&exlimit=max&exintro=1&explaintext=1&pithumbsize=400`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("Wikipedia error");
+          const data = await res.json();
+
+          let items = [];
+          if (data.query && data.query.pages) {
+            Object.values(data.query.pages).forEach((p) => {
+              if (!p.title || !p.extract) return;
+              items.push({
+                title: p.title,
+                source: "Wikipedia News",
+                url: `https://en.wikipedia.org/wiki/${encodeURIComponent(p.title)}`,
+                img:
+                  p.thumbnail && p.thumbnail.source ? p.thumbnail.source : "",
+                domain: "wikipedia.org",
+                extract: p.extract,
+                date: new Date(
+                  Date.now() - Math.floor(Math.random() * 86400000 * 3),
+                ),
+              });
+            });
+          }
+
+          items.sort((a, b) => b.date - a.date);
+          if (!items.length) throw new Error("No news");
+
+          function timeAgo(d) {
+            const diff = Date.now() - d.getTime();
+            const h = Math.floor(diff / 3600000);
+            if (h > 47) return Math.floor(h / 24) + " days ago";
+            if (h > 0) return h + " hours ago";
+            return "Just now";
+          }
+
+          list.innerHTML = items
+            .map(
+              (item) => `
+            <div class="news-card" onclick="window.open('${item.url.replace(/'/g, "\\'")}', '_blank', 'noopener')">
+                <div class="news-card-body">
+                    <div class="news-source-row">
+                        <img src="https://www.google.com/s2/favicons?sz=28&domain=${item.domain}" alt="" loading="lazy" onerror="this.style.display='none'">
+                        <span>${esc(item.source)}</span>
+                    </div>
+                    <div class="news-title">${esc(item.title)}</div>
+                    <div class="news-snippet" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${esc(item.extract)}</div>
+                    <div class="news-time">${timeAgo(item.date)}</div>
+                </div>
+                <div class="news-img">
+                    <img src="${item.img || fallbackImg}" alt="" loading="lazy" onerror="this.src='${fallbackImg}'">
+                </div>
+            </div>`,
+            )
+            .join("");
+        } catch (e) {
+          list.innerHTML = `
+            <div class="state-block">
+                <svg class="state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/></svg>
+                <h3>No news found</h3>
+                <p>Try a different search query.</p>
+            </div>`;
+        }
+      }
+
+      // ============================================================
+      // MAPS TAB
+      // ============================================================
+      function loadMap(query) {
+        const mc = document.getElementById("map-container");
+        mc.innerHTML = `
+        <div class="map-wrap">
+            <iframe
+                src="https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed"
+                allowfullscreen loading="lazy"
+                title="Map for ${esc(query)}">
+            </iframe>
+        </div>`;
+      }
+
+      // ============================================================
+      // RELATED SEARCHES
+      // ============================================================
+      function fetchRelated(query) {
+        const cbName = "__nova_rel_" + Date.now();
+        window[cbName] = function (data) {
+          const suggestions = (data && data[1] ? data[1] : []).slice(0, 8);
+          if (!suggestions.length) {
+            cleanupCallback(cbName);
+            return;
+          }
+
+          const section = document.getElementById("related-section");
+          const grid = document.getElementById("related-grid");
+          if (!section || !grid) {
+            cleanupCallback(cbName);
+            return;
+          }
+
+          grid.innerHTML = suggestions
+            .map((s) => {
+              const safe = esc(s);
+              const safeQ = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+              return `
+            <button class="related-item" onclick="doSearch('${safeQ}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#9aa0a6;flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                ${safe}
+            </button>`;
+            })
+            .join("");
+          section.style.display = "block";
+          cleanupCallback(cbName);
+        };
+
+        const s = document.createElement("script");
+        s.src = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}&callback=${cbName}`;
+        s.onerror = () => cleanupCallback(cbName);
+        document.head.appendChild(s);
+      }
+
+      // ============================================================
+      // BOTTOM SHEET
+      // ============================================================
+      function openSheet(title, url, snippet) {
+        sheetData = { title, url, snippet };
+        document.getElementById("sheet-title").textContent = title || "Website";
+        document.getElementById("sheet-url").textContent = url || "";
+        document.getElementById("sheet-snippet").textContent =
+          snippet || "No summary available for this result.";
+
+        const img = document.getElementById("sheet-fav-img");
+        try {
+          const domain = new URL(url).hostname;
+          img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+          img.style.display = "";
+        } catch (e) {
+          img.style.display = "none";
+        }
+
+        document.getElementById("sheet-overlay").classList.add("open");
+        document.getElementById("options-sheet").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSheet() {
+        document.getElementById("sheet-overlay").classList.remove("open");
+        document.getElementById("options-sheet").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      function sheetAction(action) {
+        if (!sheetData) return;
+        closeSheet();
+        setTimeout(() => {
+          if (action === "open") {
+            window.open(sheetData.url, "_blank", "noopener");
+          } else if (action === "copy") {
+            if (navigator.clipboard) {
+              navigator.clipboard
+                .writeText(sheetData.url)
+                .then(() => showToast("Link copied!"))
+                .catch(() => showToast("Copy failed"));
+            } else {
+              const ta = document.createElement("textarea");
+              ta.value = sheetData.url;
+              document.body.appendChild(ta);
+              ta.select();
+              try {
+                document.execCommand("copy");
+                showToast("Link copied!");
+              } catch (e) {}
+              document.body.removeChild(ta);
+            }
+          } else if (action === "share") {
+            if (navigator.share) {
+              navigator
+                .share({ title: sheetData.title, url: sheetData.url })
+                .catch(() => {});
+            } else if (navigator.clipboard) {
+              navigator.clipboard
+                .writeText(sheetData.url)
+                .then(() => showToast("Link copied!"));
+            }
+          }
+        }, 250);
+      }
+
+      (function setupSheetSwipe() {
+        const sheet = document.getElementById("options-sheet");
+        let startY = 0;
+        sheet.addEventListener(
+          "touchstart",
+          (e) => {
+            startY = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
+        sheet.addEventListener(
+          "touchend",
+          (e) => {
+            if (e.changedTouches[0].clientY - startY > 80) closeSheet();
+          },
+          { passive: true },
+        );
+      })();
+
+      // ============================================================
+      // LOCATION
+      // ============================================================
+      function fetchLocationLabel(elId) {
+        fetch("https://ipapi.co/json/")
+          .then((r) => r.json())
+          .then((d) => {
+            const el = document.getElementById(elId);
+            if (el && d && d.country_name) el.textContent = d.country_name;
+          })
+          .catch(() => {});
+      }
+
+      // ============================================================
+      // TOAST
+      // ============================================================
+      let toastTimer;
+      function showToast(msg, duration = 2500) {
+        const el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), duration);
+      }
+
+      // ============================================================
+      // UTILS
+      // ============================================================
+      function esc(s) {
+        if (!s) return "";
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      // ============================================================
+      // URL-BASED INIT & POPSTATE
+      // ============================================================
+      function initFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get("q");
+        const tab = params.get("tab") || "all";
+
+        if (q) {
+          currentQuery = q;
+          document.getElementById("home-page").classList.remove("active");
+          document.getElementById("results-page").classList.add("active");
+          document.getElementById("results-input").value = q;
+          document.getElementById("results-clear-btn").style.display = "flex";
+          document.title = `${q} — Nova Search`;
+
+          resetTabContents();
+          switchTab(tab, false);
+          fetchWebResults(q).then(() => {
+            if (tab && tab !== "all") switchTab(tab, true);
+          });
+        } else {
+          document.getElementById("home-page").classList.add("active");
+          document.getElementById("results-page").classList.remove("active");
+          renderRecentSearches();
+          renderTrending();
+          fetchLocationLabel("footer-location");
+          setTimeout(() => {
+            const inp = document.getElementById("home-input");
+            if (inp) inp.focus();
+          }, 200);
+        }
+      }
+
+      window.addEventListener("popstate", () => initFromUrl());
+      window.addEventListener("online", () => showToast("Back online"));
+      window.addEventListener("offline", () => showToast("You are offline"));
+
+      document.addEventListener("DOMContentLoaded", initFromUrl);
+
+      // EXPORT ALL INLINE HANDLERS TO WINDOW (since script is type="module")
+      window.onHomeInput = onHomeInput;
+      window.onHomeKeydown = onHomeKeydown;
+      window.onHomeInputFocus = onHomeInputFocus;
+      window.clearHomeInput = clearHomeInput;
+      window.startVoiceSearch = startVoiceSearch;
+      window.onResultsInput = onResultsInput;
+      window.onResultsKeydown = onResultsKeydown;
+      window.clearResultsInput = clearResultsInput;
+      window.switchTab = switchTab;
+      window.closeSheet = closeSheet;
+      window.sheetAction = sheetAction;
+      window.stopVoiceSearch = stopVoiceSearch;
+      window.doSearch = doSearch;
+      window.fillInput = fillInput;
+      window.clearAllRecent = clearAllRecent;
+      window.openSheet = openSheet;
+      window.loadMore = loadMore;
+      window.deleteRecent = deleteRecent;
+      window.showHomePage = showHomePage;
+    </script>
+  </body>
+</html>
